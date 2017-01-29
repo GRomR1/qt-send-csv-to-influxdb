@@ -24,11 +24,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    csvreader.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    csvreader.h
 
 FORMS    += mainwindow.ui
 
 CONFIG   += c++11
 QMAKE_CXXFLAGS += -std=c++11
+
+RESOURCES += res.qrc
