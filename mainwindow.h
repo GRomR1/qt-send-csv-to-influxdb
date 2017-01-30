@@ -15,6 +15,8 @@
 #include <QTextCodec>
 #include <QChart>
 
+#include "serverconfigures.h"
+
 QT_CHARTS_USE_NAMESPACE
 
 namespace Ui {
@@ -26,7 +28,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = 0, ServerConfigures ip = ServerConfigures());
     ~MainWindow();
 
 signals:
@@ -34,20 +36,26 @@ signals:
 
 private slots:
     void on_pushButtonLoad_clicked();
-    void replyFinish(QNetworkReply *reply);
-
+    void on_pushButtonDraw_clicked();
+    void on_lineEditFilePath_returnPressed();
     void on_pushButtonSend_clicked();
+
     void debug(QString str);
 
+    void replyFinish(QNetworkReply *reply);
     void showChart();
     void readFile();
-
-    void on_pushButtonDraw_clicked();
+    void loadFile();
+    void sendData();
+    void parseRawData();
 
 private:
     Ui::MainWindow *ui;
     QNetworkAccessManager *nwam;
-    QMap<QDateTime, uint> _data;
+    QMap<QDateTime, QVariant> _data;
+    QList<QStringList> _rawData;
+    QStringList _head;
+    ServerConfigures _sc;
 };
 
 
