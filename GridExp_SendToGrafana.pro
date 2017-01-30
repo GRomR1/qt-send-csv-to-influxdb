@@ -25,14 +25,50 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    csvreader.cpp
+    serverconfigures.cpp
 
 HEADERS  += mainwindow.h \
-    csvreader.h
+    serverconfigures.h
 
 FORMS    += mainwindow.ui
 
 CONFIG   += c++11
 QMAKE_CXXFLAGS += -std=c++11
 
-RESOURCES += res.qrc
+RESOURCES +=
+
+INCLUDEPATH += qtcsv/include \
+        qtcsv
+
+#!msvc {
+#    # flags for gcc-like compiler
+#    CONFIG += warn_on
+#    QMAKE_CXXFLAGS_WARN_ON += -Werror -Wformat=2 -Wuninitialized -Winit-self \
+#            -Wmissing-include-dirs -Wswitch-enum -Wundef -Wpointer-arith \
+#            -Wdisabled-optimization -Wcast-align -Wcast-qual
+#}
+
+DEFINES += QTCSV_LIBRARY
+
+SOURCES += \
+    qtcsv/sources/writer.cpp \
+    qtcsv/sources/variantdata.cpp \
+    qtcsv/sources/stringdata.cpp \
+    qtcsv/sources/reader.cpp \
+    qtcsv/sources/contentiterator.cpp
+
+HEADERS += \
+    qtcsv/include/qtcsv/qtcsv_global.h \
+    qtcsv/include/qtcsv/writer.h \
+    qtcsv/include/qtcsv/variantdata.h \
+    qtcsv/include/qtcsv/stringdata.h \
+    qtcsv/include/qtcsv/reader.h \
+    qtcsv/include/qtcsv/abstractdata.h \
+    qtcsv/sources/filechecker.h \
+    qtcsv/sources/contentiterator.h \
+    qtcsv/sources/symbols.h
+
+DISTFILES += \
+    settings_new.conf
+
+
