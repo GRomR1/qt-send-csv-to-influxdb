@@ -110,6 +110,7 @@ void MainWindow::showChart()
 
 void MainWindow::readFile()
 {
+    ui->tableWidget->clear();
     QString filename = ui->lineEditFilePath->text();
     _rawData = QtCSV::Reader::readToList(filename.toLower(),
                                                         ";",
@@ -118,9 +119,10 @@ void MainWindow::readFile()
 
     _head = _rawData.takeFirst();
     ui->tableWidget->setColumnCount(_head.size());
+    ui->tableWidget->setRowCount(0);
     ui->tableWidget->setHorizontalHeaderLabels(_head);
     ui->lineEditTimeColumn->setText("1");
-    ui->lineEditTimeFormat->setText("dd.MM.yyyy hh:mm:ss");
+    ui->lineEditTimeFormat->setText("dd.MM.yyyy hh:mm");
     ui->lineEditDataColumn->setText("2");
     ui->lineEditDataName->setText(_head.at(1));
     ui->lineEditMeasurement->setText(QFileInfo(filename).baseName().remove(".csv",Qt::CaseInsensitive));
@@ -195,10 +197,10 @@ void MainWindow::sendData()
     request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/x-www-form-urlencoded"));
     request.setRawHeader("Content-Transfer-Encoding","binary");
 
-    QString measurement = ui->lineEditMeasurement->text();
-    QString fieldname = ui->lineEditDataName->text();
-    QString tagname = ui->lineEditTagName->text();
-    QString tagvalue = ui->lineEditTagValue->text();
+    QString measurement = ui->lineEditMeasurement->text().trimmed();
+    QString fieldname = ui->lineEditDataName->text().trimmed();
+    QString tagname = ui->lineEditTagName->text().trimmed();
+    QString tagvalue = ui->lineEditTagValue->text().trimmed();
 
     measurement.remove(',');
     fieldname.remove(',');
@@ -210,6 +212,13 @@ void MainWindow::sendData()
     tagname.replace(' ', '_');
     tagvalue.replace(' ', '_');
 
+//    qDebug() << QString("%1,%2=%3 %4=%5")
+//                .arg(measurement)
+//                .arg(tagname)
+//                .arg(tagvalue)
+//                .arg(fieldname)
+//                .arg('11');
+
     QStringList requestList;
     QMap<QDateTime, QVariant>::iterator it = _data.begin();
     for (;it != _data.end(); ++it) {
@@ -218,7 +227,7 @@ void MainWindow::sendData()
             requestString =
                     QString("%1 %2=%3 %4")
                     .arg(measurement)
-                    .arg(tagname)
+                    .arg(fieldname)
                     .arg(it.value().toString().replace(',', '.'))
                     .arg(it.key().toTime_t());
         else
@@ -233,6 +242,8 @@ void MainWindow::sendData()
 
         requestList << requestString;
     }
+
+//    qDebug() << _data.size() << requestList.size();
     if(!_data.isEmpty())
         nwam->post(request,
                    QString(requestList.join('\n')).toUtf8());
@@ -245,9 +256,16 @@ void MainWindow::parseRawData()
     int colData = ui->lineEditDataColumn->text().toInt()-1;
     int colTime = ui->lineEditTimeColumn->text().toInt()-1;
     QString format = ui->lineEditTimeFormat->text();
+//    qDebug() << _rawData.size();
     for(int i=0; i<_rawData.size(); ++i)
     {
-        _data.insert(QDateTime::fromString(_rawData.at(i).at(colTime), format), _rawData.at(i).at(colData));
+//        qDebug() << i << _rawData.at(i).at(colTime) << QDateTime::fromString(_rawData.at(i).at(colTime), format).toString()
+//                 << _rawData.at(i).at(colData);
+        _data.insert(
+                    QDateTime::fromString(_rawData.at(i).at(colTime),
+                                          format),
+                    _rawData.at(i).at(colData)
+                    );
     }
 }
 
