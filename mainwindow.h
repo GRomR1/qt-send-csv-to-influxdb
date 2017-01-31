@@ -3,6 +3,7 @@
 
 #include <QtCharts/QtCharts>
 #include <QMainWindow>
+#include <QMultiMap>
 #include <QMap>
 #include <QString>
 #include <QDebug>

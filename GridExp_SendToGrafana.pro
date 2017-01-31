@@ -41,7 +41,7 @@ INCLUDEPATH += qtcsv/include \
         qtcsv
 
 #!msvc {
-#    # flags for gcc-like compiler
+    # flags for gcc-like compiler
 #    CONFIG += warn_on
 #    QMAKE_CXXFLAGS_WARN_ON += -Werror -Wformat=2 -Wuninitialized -Winit-self \
 #            -Wmissing-include-dirs -Wswitch-enum -Wundef -Wpointer-arith \
