@@ -38,9 +38,8 @@ void MainWindow::on_pushButtonLoad_clicked()
 void MainWindow::replyFinish(QNetworkReply *reply)
 {
     QString answer = QString::fromUtf8(reply->readAll());
-//    Q_UNUSED(answer)
     QNetworkReply::NetworkError ne = reply->error();
-    qDebug() <<  ((ne == QNetworkReply::NoError)? "good" : "error");
+    emit toDebug((ne == QNetworkReply::NoError)? "Success!" : "Error!");
     qDebug() << "answer" << answer;
 
 }
@@ -137,39 +136,6 @@ void MainWindow::readFile()
         }
         ++nRow;
     }
-
-    /*
-    QFile file(filename);
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        emit toDebug(QString("Ошибка открытия файла '%1' для чтения").arg(filename));
-        return;
-    }
-    QTextStream in(&file);
-    QTextCodec *defaultTextCodec = QTextCodec::codecForName("Windows-1251");
-    if (defaultTextCodec)
-        in.setCodec(defaultTextCodec);
-    int nRow=0;
-    while (!in.atEnd())
-    {
-        QString line = in.readLine();
-        if(!line.isEmpty())
-        {
-            if(nRow==0) {
-//                qDebug().noquote() << "H:" << line;
-                nRow++;
-                continue;
-            }
-            QStringList row = line.split(';');
-            //Time Format is 10.06.2014 14:30:00
-            _data.insert(QDateTime::fromString(row.at(0), "dd.MM.yyyy hh:mm:ss"), QString(row.at(2)).toInt());
-            nRow++;
-        }
-//        if(nRow >= 10)
-//            break;
-    }
-    file.close();
-    */
 }
 
 void MainWindow::loadFile()
@@ -212,13 +178,6 @@ void MainWindow::sendData()
     tagname.replace(' ', '_');
     tagvalue.replace(' ', '_');
 
-//    qDebug() << QString("%1,%2=%3 %4=%5")
-//                .arg(measurement)
-//                .arg(tagname)
-//                .arg(tagvalue)
-//                .arg(fieldname)
-//                .arg('11');
-
     QStringList requestList;
     QMap<QDateTime, QVariant>::iterator it = _data.begin();
     for (;it != _data.end(); ++it) {
@@ -243,7 +202,6 @@ void MainWindow::sendData()
         requestList << requestString;
     }
 
-//    qDebug() << _data.size() << requestList.size();
     if(!_data.isEmpty())
         nwam->post(request,
                    QString(requestList.join('\n')).toUtf8());
