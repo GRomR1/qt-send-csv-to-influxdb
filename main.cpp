@@ -17,6 +17,11 @@ int main(int argc, char *argv[])
     sc.password = settings.value( "password", "" ).toString();
     settings.endGroup();
 
+
+//    qDebug() << QTimeZone(5*60*60).comment();
+//    qDebug() << QTimeZone("UTC+05:00").comment();
+//    qDebug() << QTimeZone("UTC+05:00").isValid();
+
     MainWindow w(nullptr,sc);
     w.show();
 

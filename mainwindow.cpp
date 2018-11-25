@@ -11,6 +11,14 @@ MainWindow::MainWindow(QWidget *parent, ServerConfigures sc) :
     ui->setupUi(this);
     ui->lineEditServerIp->setText(sc.ip);
 
+    QList<QByteArray> tzones = QTimeZone::availableTimeZoneIds();
+    foreach (QByteArray ba, tzones) {
+        if(ba.contains("UTC")){
+            ui->_comboBoxTimeZones->addItem(ba);
+        }
+    }
+    ui->_comboBoxTimeZones->setCurrentText("UTC+05:00");
+
     nwam = new QNetworkAccessManager;
     connect(nwam, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinish(QNetworkReply*)));
     connect(this, SIGNAL(toDebug(QString)), SLOT(debug(QString)));
@@ -26,11 +34,13 @@ void MainWindow::on_pushButtonLoad_clicked()
     QString str =
             QFileDialog::getOpenFileName(0,
                                          tr("Open CSV File with data"),
-                                         QCoreApplication::applicationDirPath(),
+                                         QDir::currentPath(),
                                          "*.csv"
                                          );
     if (!str.isEmpty()) {
         ui->lineEditFilePath->setText( str );
+        QDir::setCurrent(QFileInfo(str).absoluteDir().absolutePath());
+        qDebug() << "QDir::current" << QDir::currentPath();
         loadFile();
     }
 }
@@ -116,6 +126,11 @@ void MainWindow::readFile()
                                                         "\"",
                                                         QTextCodec::codecForName("Windows-1251"));
 
+//    foreach (QStringList ss, _rawData) {
+//        qDebug() << "_rawData" << ss.join(';');
+//    }
+//    qDebug() << "_rawData size" << _rawData.size();
+
     _head = _rawData.takeFirst();
     ui->tableWidget->setColumnCount(_head.size());
     ui->tableWidget->setRowCount(0);
@@ -178,30 +193,40 @@ void MainWindow::sendData()
     tagname.replace(' ', '_');
     tagvalue.replace(' ', '_');
 
+    int countErrors=0;
     QStringList requestList;
     QMap<QDateTime, QVariant>::iterator it = _data.begin();
     for (;it != _data.end(); ++it) {
-        QString requestString;
-        if(tagname.isEmpty() || tagvalue.isEmpty())
-            requestString =
-                    QString("%1 %2=%3 %4")
-                    .arg(measurement)
-                    .arg(fieldname)
-                    .arg(it.value().toString().replace(',', '.'))
-                    .arg(it.key().toTime_t());
+//        qDebug() << "requestList" << it.key().toString() << it.value().toString();
+        if(it.key().isValid())
+        {
+            QString requestString;
+            if(tagname.isEmpty() || tagvalue.isEmpty())
+                requestString =
+                        QString("%1 %2=%3 %4")
+                        .arg(measurement)
+                        .arg(fieldname)
+                        .arg(it.value().toString().replace(',', '.'))
+                        .arg(it.key().toTime_t());
+            else
+                requestString =
+                        QString("%1,%2=%3 %4=%5 %6")
+                        .arg(measurement)
+                        .arg(tagname)
+                        .arg(tagvalue)
+                        .arg(fieldname)
+                        .arg(it.value().toString().replace(',', '.'))
+                        .arg(it.key().toTime_t());
+            requestList << requestString;
+        }
         else
-            requestString =
-                    QString("%1,%2=%3 %4=%5 %6")
-                    .arg(measurement)
-                    .arg(tagname)
-                    .arg(tagvalue)
-                    .arg(fieldname)
-                    .arg(it.value().toString().replace(',', '.'))
-                    .arg(it.key().toTime_t());
-
-        requestList << requestString;
+        {
+            ++countErrors;
+        }
     }
 
+//    qDebug() << "requestList size" << requestList.size();
+    emit toDebug(QString("Count invalid time: %1").arg(QString::number(countErrors)));
     if(!_data.isEmpty())
         nwam->post(request,
                    QString(requestList.join('\n')).toUtf8());
@@ -214,14 +239,19 @@ void MainWindow::parseRawData()
     int colData = ui->lineEditDataColumn->text().toInt()-1;
     int colTime = ui->lineEditTimeColumn->text().toInt()-1;
     QString format = ui->lineEditTimeFormat->text();
-//    qDebug() << _rawData.size();
+//    qDebug() << "_rawData.size()" << _rawData.size();
     for(int i=0; i<_rawData.size(); ++i)
     {
-//        qDebug() << i << _rawData.at(i).at(colTime) << QDateTime::fromString(_rawData.at(i).at(colTime), format).toString()
+
+        QDateTime dt = QDateTime::fromString(_rawData.at(i).at(colTime), format);
+        dt.setTimeZone(QTimeZone(ui->_comboBoxTimeZones->currentText().toLocal8Bit()));
+//        qDebug() << i
+//                 << _rawData.at(i).at(colTime)
+//                 << dt.toString()
+//                 << dt.toUTC()
 //                 << _rawData.at(i).at(colData);
         _data.insert(
-                    QDateTime::fromString(_rawData.at(i).at(colTime),
-                                          format),
+                    dt,
                     _rawData.at(i).at(colData)
                     );
     }

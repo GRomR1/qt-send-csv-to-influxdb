@@ -15,6 +15,8 @@
 #include <QFileDialog>
 #include <QTextCodec>
 #include <QChart>
+#include <QDir>
+#include <QTimeZone>
 
 #include "serverconfigures.h"
 
