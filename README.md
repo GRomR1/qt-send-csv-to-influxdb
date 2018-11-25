@@ -1,1 +1,1 @@
-# GridExp_SendToGrafana
+# qt-send-csv-to-influxdb.pro
